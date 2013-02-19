@@ -14,8 +14,8 @@ import com.recursivepenguin.botcubed.service.PrinterConnectionProxy;
 import com.recursivepenguin.botcubed.service.PrinterConnectionService;
 import com.recursivepenguin.botcubed.service.PrinterConnectionService_;
 import com.recursivepenguin.botcubed.service.PrinterError;
-import de.neofonie.mobile.app.android.widget.crouton.Crouton;
-import de.neofonie.mobile.app.android.widget.crouton.Style;
+import de.keyboardsurfer.android.widget.crouton.Crouton;
+import de.keyboardsurfer.android.widget.crouton.Style;
 
 @EActivity(R.layout.main)
 public class MainActivity extends Activity implements PrinterConnectionProxy {

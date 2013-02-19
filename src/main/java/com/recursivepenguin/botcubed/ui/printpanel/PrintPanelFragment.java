@@ -11,10 +11,18 @@ public class PrintPanelFragment extends Fragment {
 
     @Click
     void zPlus1() {
-        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
-        proxy.injectManualCommand("G91");
-        proxy.injectManualCommand("G1 Z1");
-        proxy.injectManualCommand("G90");
+        moveHead("Z", 1);
     }
 
+    @Click
+    void zPlus01() {
+        moveHead("Z", 0.1);
+    }
+
+    private void moveHead(String axis, double amount) {
+        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+        proxy.injectManualCommand("G91");
+        proxy.injectManualCommand(String.format("G1 %s%s", axis, amount));
+        proxy.injectManualCommand("G90");
+    }
 }

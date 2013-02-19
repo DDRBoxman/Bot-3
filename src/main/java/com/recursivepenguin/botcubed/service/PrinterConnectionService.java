@@ -10,8 +10,12 @@ import com.googlecode.androidannotations.annotations.EService;
 import com.googlecode.androidannotations.annotations.SystemService;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.HexDump;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @EService
 public class PrinterConnectionService extends Service {
@@ -21,9 +25,11 @@ public class PrinterConnectionService extends Service {
     @SystemService
     UsbManager usbManager;
 
-    UsbSerialDriver driver;
+    UsbSerialDriver mSerialDevice;
 
-    ReceiveThread mReceiveThread;
+    private SerialInputOutputManager mSerialIoManager;
+
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     boolean connected = false;
 
@@ -54,34 +60,29 @@ public class PrinterConnectionService extends Service {
 
     public void connectToPrinter() throws PrinterError {
         // Find the first available driver.
-        driver = UsbSerialProber.acquire(usbManager);
+        mSerialDevice = UsbSerialProber.acquire(usbManager);
 
-        if (driver != null) {
+        if (mSerialDevice != null) {
             try {
-                driver.open();
-                driver.setBaudRate(115200);
+                mSerialDevice.open();
 
                 connected = true;
 
-                mReceiveThread = new ReceiveThread();
-                mReceiveThread.start();
+                startIoManager();
             } catch (IOException e) {
                 throw new PrinterError("Failed to open printer connection.");
             }
-        }
-        else {
+        } else {
             throw new PrinterError("No Printer Found");
         }
     }
 
     public void disconnectFromPrinter() {
 
-        connected = false;
-
-        mReceiveThread = null;
+        stopIoManager();
 
         try {
-            driver.close();
+            mSerialDevice.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -92,20 +93,40 @@ public class PrinterConnectionService extends Service {
      */
     public void injectManualCommand(String command) {
         Log.d(TAG, command);
+        addToCodeQueue(command);
     }
 
-    private class ReceiveThread extends Thread {
-        @Override
-        public synchronized void start() {
+    private final SerialInputOutputManager.Listener mListener =
+            new SerialInputOutputManager.Listener() {
 
-            byte buffer[] = new byte[16];
-            int numBytesRead = 0;
-            try {
-                numBytesRead = driver.read(buffer, 1000);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Log.d(TAG, "Read " + numBytesRead + " bytes.");
+                @Override
+                public void onRunError(Exception e) {
+                    Log.d(TAG, "Runner stopped.");
+                }
+
+                @Override
+                public void onNewData(final byte[] data) {
+                    Log.d(TAG, HexDump.dumpHexString(data));
+                }
+            };
+
+    private void stopIoManager() {
+        if (mSerialIoManager != null) {
+            Log.i(TAG, "Stopping io manager ..");
+            mSerialIoManager.stop();
+            mSerialIoManager = null;
         }
+    }
+
+    private void startIoManager() {
+        if (mSerialDevice != null) {
+            Log.i(TAG, "Starting io manager ..");
+            mSerialIoManager = new SerialInputOutputManager(mSerialDevice, mListener);
+            mExecutor.submit(mSerialIoManager);
+        }
+    }
+
+    public void addToCodeQueue(String code) {
+        mSerialIoManager.writeAsync((code + "\n").getBytes());
     }
 }

@@ -21,6 +21,12 @@ public class PrinterConnectionService extends Service {
     @SystemService
     UsbManager usbManager;
 
+    UsbSerialDriver driver;
+
+    ReceiveThread mReceiveThread;
+
+    boolean connected = false;
+
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -42,28 +48,42 @@ public class PrinterConnectionService extends Service {
         return START_STICKY;
     }
 
-    public void acquirePrinter() {
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void connectToPrinter() throws PrinterError {
         // Find the first available driver.
-        UsbSerialDriver driver = UsbSerialProber.acquire(usbManager);
+        driver = UsbSerialProber.acquire(usbManager);
 
         if (driver != null) {
             try {
                 driver.open();
-                try {
-                    driver.setBaudRate(115200);
+                driver.setBaudRate(115200);
 
-                    byte buffer[] = new byte[16];
-                    int numBytesRead = driver.read(buffer, 1000);
-                    Log.d(TAG, "Read " + numBytesRead + " bytes.");
-                } catch (IOException e) {
-                    // Deal with error.
-                } finally {
-                    driver.close();
-                }
+                connected = true;
+
+                mReceiveThread = new ReceiveThread();
+                mReceiveThread.start();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new PrinterError("Failed to open printer connection.");
             }
+        }
+        else {
+            throw new PrinterError("No Printer Found");
+        }
+    }
 
+    public void disconnectFromPrinter() {
+
+        connected = false;
+
+        mReceiveThread = null;
+
+        try {
+            driver.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -71,6 +91,21 @@ public class PrinterConnectionService extends Service {
     Send a print command, that does not belong to a print job.
      */
     public void injectManualCommand(String command) {
-         Log.d(TAG, command);
+        Log.d(TAG, command);
+    }
+
+    private class ReceiveThread extends Thread {
+        @Override
+        public synchronized void start() {
+
+            byte buffer[] = new byte[16];
+            int numBytesRead = 0;
+            try {
+                numBytesRead = driver.read(buffer, 1000);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "Read " + numBytesRead + " bytes.");
+        }
     }
 }

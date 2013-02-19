@@ -2,4 +2,5 @@
 <resources>
     <string name="hello">Hello BotCubed!</string>
     <string name="app_name">BotCubed</string>
+    <string name="connect">Connect</string>
 </resources>

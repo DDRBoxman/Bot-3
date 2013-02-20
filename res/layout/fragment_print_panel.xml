@@ -1,25 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    <com.recursivepenguin.botcubed.ui.printpanel.JogPanelView
-            android:id="@+id/jogPanel"
-            android:layout_height="248px"
-            android:layout_width="wrap_content"/>
-
-    <Button
-            android:id="@+id/zPlus1"
+    <TableLayout
+            android:id="@+id/jogButtons"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:text="Z +1"/>
+            android:layout_width="wrap_content">
 
-    <Button
-            android:id="@+id/zPlus01"
+        <TableRow>
+
+            <Button
+                    android:id="@+id/xplus"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="+X"
+                    style="@style/jogButtonStyle"/>
+
+            <Button
+                    android:id="@+id/yplus"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="+Y"
+                    style="@style/jogButtonStyle"/>
+
+            <Button
+                    android:id="@+id/zplus"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="+Z"
+                    style="@style/jogButtonStyle"/>
+        </TableRow>
+
+        <TableRow>
+
+            <Button
+                    android:id="@+id/xminus"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="-X"
+                    style="@style/jogButtonStyle"/>
+
+
+            <Button
+                    android:id="@+id/yminus"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="-Y"
+                    style="@style/jogButtonStyle"/>
+
+
+            <Button
+                    android:id="@+id/zminus"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="-Z"
+                    style="@style/jogButtonStyle"/>
+        </TableRow>
+    </TableLayout>
+
+
+    <RadioGroup
+            android:id="@+id/magnitude"
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:text="Z +0.1"/>
+            android:layout_below="@+id/jogButtons">
 
-</LinearLayout>
+        <RadioButton
+                android:id="@+id/magnitude01"
+                android:text="0.1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"/>
+
+        <RadioButton
+                android:id="@+id/magnitude1"
+                android:text="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        <RadioButton
+                android:id="@+id/magnitude10"
+                android:text="10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        <RadioButton
+                android:id="@+id/magnitude100"
+                android:text="100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+    </RadioGroup>
+
+</RelativeLayout>

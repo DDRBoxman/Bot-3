@@ -12,10 +12,13 @@ import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.HexDump;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
+import com.recursivepenguin.botcubed.Printer;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @EService
 public class PrinterConnectionService extends Service {
@@ -32,6 +35,8 @@ public class PrinterConnectionService extends Service {
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     boolean connected = false;
+
+    private Printer printer = new Printer();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -106,7 +111,8 @@ public class PrinterConnectionService extends Service {
 
                 @Override
                 public void onNewData(final byte[] data) {
-                    Log.d(TAG, HexDump.dumpHexString(data));
+                    String response = HexDump.dumpHexString(data);
+                    parseResponse(response);
                 }
             };
 
@@ -128,5 +134,30 @@ public class PrinterConnectionService extends Service {
 
     public void addToCodeQueue(String code) {
         mSerialIoManager.writeAsync((code + "\n").getBytes());
+    }
+
+    Pattern tempPattern = Pattern.compile("T:(\\d+(\\.\\d+)?) B:(\\d+(\\.\\d+)?)");
+
+    private void parseResponse(String response) {
+        String type = response.substring(0, 2);
+        if (type.equals("ok")) {
+            //okay
+
+            if (response.length() > 3) {
+                response = response.substring(3);
+
+                Matcher m = tempPattern.matcher(response);
+                if (m.find()) {
+                    printer.setExtruderTemp(Double.parseDouble(m.group(1)));
+                    printer.setBedTemp(Double.parseDouble(m.group(3)));
+                }
+            }
+
+        } else if (type.equals("rs")) {
+            //resend
+
+        } else if (type.equals("!!")) {
+            //Oh shit hardware dead!
+        }
     }
 }

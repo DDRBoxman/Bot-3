@@ -38,6 +38,7 @@ public class MainActivity extends Activity implements PrinterConnectionProxy {
         } else {
             try {
                 mBoundService.connectToPrinter();
+                Crouton.makeText(this, "Connected to Printer", Style.CONFIRM).show();
             } catch (PrinterError printerError) {
                 Crouton.makeText(this, printerError.getMessage(), Style.ALERT).show();
             }

@@ -145,11 +145,14 @@ public class PrinterConnectionService extends Service {
             Log.i(TAG, "Starting io manager ..");
             mSerialIoManager = new SerialInputOutputManager(mSerialDevice, mListener);
             mExecutor.submit(mSerialIoManager);
+            addToCodeQueue("M114");
         }
     }
 
     public void addToCodeQueue(String code) {
-        mSerialIoManager.writeAsync((code + "\n").getBytes());
+        if (mSerialIoManager != null) {
+            mSerialIoManager.writeAsync((code + "\n").getBytes());
+        }
     }
 
     Pattern tempPattern = Pattern.compile("T:(\\d+(\\.\\d+)?) B:(\\d+(\\.\\d+)?)");

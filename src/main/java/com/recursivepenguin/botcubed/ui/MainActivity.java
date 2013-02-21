@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import com.googlecode.androidannotations.annotations.Click;
 import com.googlecode.androidannotations.annotations.EActivity;
+import com.recursivepenguin.botcubed.Printer;
 import com.recursivepenguin.botcubed.R;
 import com.recursivepenguin.botcubed.service.PrinterConnectionProxy;
 import com.recursivepenguin.botcubed.service.PrinterConnectionService;
@@ -93,6 +94,14 @@ public class MainActivity extends Activity implements PrinterConnectionProxy {
         if (mBoundService != null) {
             mBoundService.injectManualCommand(command);
         }
+    }
+
+    @Override
+    public Printer getPrinter() {
+        if (mBoundService != null) {
+            return mBoundService.getPrinter();
+        }
+        return null;
     }
 }
 

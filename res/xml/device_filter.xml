@@ -11,5 +11,11 @@
 
     <!-- 0x10C4 / 0xEA60: CP210x UART Bridge -->
     <usb-device vender-id="4292" product-id="60000" />
-    
+
+    <!-- 0x23C1 / 0xB015 Makerbot Replicator -->
+    <usb-device vendor-id="9153" product-id="54036"/>
+
+    <!-- 0x23C1 / 0xB015 Makerbot Replicator2 -->
+    <usb-device vendor-id="9153" product-id="45077"/>
+
 </resources>

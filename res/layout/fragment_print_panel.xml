@@ -96,4 +96,25 @@
 
     </RadioGroup>
 
+    <TextView
+            android:id="@+id/xpos"
+            android:layout_toRightOf="@+id/jogButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X: 0"/>
+    <TextView
+            android:id="@+id/ypos"
+            android:layout_toRightOf="@+id/jogButtons"
+            android:layout_below="@+id/xpos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Y: 0"/>
+    <TextView
+            android:id="@+id/zpos"
+            android:layout_toRightOf="@+id/jogButtons"
+            android:layout_below="@+id/ypos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Z: 0"/>
+
 </RelativeLayout>

@@ -4,6 +4,10 @@ public class Printer {
 
     double extruderTemp;
     double bedTemp;
+    double xPos;
+    double yPos;
+    double zPos;
+    double extruderPos;
 
     public double getBedTemp() {
         return bedTemp;
@@ -19,5 +23,37 @@ public class Printer {
 
     public void setExtruderTemp(double extruderTemp) {
         this.extruderTemp = extruderTemp;
+    }
+
+    public double getxPos() {
+        return xPos;
+    }
+
+    public void setxPos(double xPos) {
+        this.xPos = xPos;
+    }
+
+    public double getyPos() {
+        return yPos;
+    }
+
+    public void setyPos(double yPos) {
+        this.yPos = yPos;
+    }
+
+    public double getzPos() {
+        return zPos;
+    }
+
+    public void setzPos(double zPos) {
+        this.zPos = zPos;
+    }
+
+    public double getExtruderPos() {
+        return extruderPos;
+    }
+
+    public void setExtruderPos(double extruderPos) {
+        this.extruderPos = extruderPos;
     }
 }

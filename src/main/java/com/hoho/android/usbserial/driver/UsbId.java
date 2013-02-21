@@ -49,6 +49,10 @@ public final class UsbId {
     public static final int VENDOR_VAN_OOIJEN_TECH = 0x16c0;
     public static final int VAN_OOIJEN_TECH_TEENSYDUINO_SERIAL = 0x0483;
 
+    public static final int VENDOR_MAKERBOT = 0x23C1;
+    public static final int REPLICATOR = 0xD314;
+    public static final int REPLICATOR2 = 0xB015;
+
     public static final int VENDOR_LEAFLABS = 0x1eaf;
     public static final int LEAFLABS_MAPLE = 0x0004;
     

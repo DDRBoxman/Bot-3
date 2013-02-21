@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.googlecode.androidannotations.annotations.EService;
 import com.googlecode.androidannotations.annotations.SystemService;
@@ -25,6 +26,8 @@ public class PrinterConnectionService extends Service {
 
     final String TAG = "PrinterConnectionService";
 
+    public static final String ACTION_POSITION_CHANGED = "com.recursivepenguin.botcubed.service.ACTION_POSITION_CHANGED";
+
     @SystemService
     UsbManager usbManager;
 
@@ -37,6 +40,8 @@ public class PrinterConnectionService extends Service {
     boolean connected = false;
 
     private Printer printer = new Printer();
+
+    LocalBroadcastManager mManager;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -57,6 +62,13 @@ public class PrinterConnectionService extends Service {
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        mManager = LocalBroadcastManager.getInstance(this);
     }
 
     public boolean isConnected() {
@@ -101,6 +113,10 @@ public class PrinterConnectionService extends Service {
         addToCodeQueue(command);
     }
 
+    public Printer getPrinter() {
+        return printer;
+    }
+
     private final SerialInputOutputManager.Listener mListener =
             new SerialInputOutputManager.Listener() {
 
@@ -137,6 +153,7 @@ public class PrinterConnectionService extends Service {
     }
 
     Pattern tempPattern = Pattern.compile("T:(\\d+(\\.\\d+)?) B:(\\d+(\\.\\d+)?)");
+    Pattern positionPattern = Pattern.compile("C: X:(\\d+(\\.\\d+)?) Y:(\\d+(\\.\\d+)?) Z:(\\d+(\\.\\d+)?) E:(\\d+(\\.\\d+)?)");
 
     private void parseResponse(String response) {
         String type = response.substring(0, 2);
@@ -150,6 +167,20 @@ public class PrinterConnectionService extends Service {
                 if (m.find()) {
                     printer.setExtruderTemp(Double.parseDouble(m.group(1)));
                     printer.setBedTemp(Double.parseDouble(m.group(3)));
+                    return;
+                }
+
+                m = positionPattern.matcher(response);
+                if (m.find()) {
+                    printer.setxPos(Double.parseDouble(m.group(1)));
+                    printer.setyPos(Double.parseDouble(m.group(3)));
+                    printer.setzPos(Double.parseDouble(m.group(5)));
+                    printer.setzPos(Double.parseDouble(m.group(7)));
+
+                    Intent intent = new Intent();
+                    intent.setAction(ACTION_POSITION_CHANGED);
+                    mManager.sendBroadcast(intent);
+                    return;
                 }
             }
 

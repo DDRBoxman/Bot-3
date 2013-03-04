@@ -34,6 +34,26 @@ public class PrintPanelFragment extends Fragment {
     LocalBroadcastManager mManager;
 
     @Click
+    void homeall() {
+        homeAxis();
+    }
+
+    @Click
+    void xhome() {
+        homeAxis("X");
+    }
+
+    @Click
+    void yhome() {
+        homeAxis("Y");
+    }
+
+    @Click
+    void zhome() {
+        homeAxis("Z");
+    }
+
+    @Click
     void xplus() {
         moveHead("X", 1);
     }
@@ -76,6 +96,16 @@ public class PrintPanelFragment extends Fragment {
         super.onPause();
 
         mManager.unregisterReceiver(mMessageReceiver);
+    }
+
+    private void homeAxis() {
+        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+        proxy.injectManualCommand("G28");
+    }
+
+    private void homeAxis(String axis) {
+        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+        proxy.injectManualCommand(String.format("G28 %s0.0", axis));
     }
 
     private void moveHead(String axis, double direction) {

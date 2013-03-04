@@ -11,6 +11,40 @@
             android:layout_width="wrap_content">
 
         <TableRow>
+            <Button
+                    android:id="@+id/homeall"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="Home All"
+                    style="@style/jogButtonStyle"
+                    android:layout_span="3"/>
+        </TableRow>
+
+        <TableRow>
+
+            <Button
+                    android:id="@+id/xhome"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="X Home"
+                    style="@style/jogButtonStyle"/>
+
+            <Button
+                    android:id="@+id/yhome"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="Y Home"
+                    style="@style/jogButtonStyle"/>
+
+            <Button
+                    android:id="@+id/zhome"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="Z Home"
+                    style="@style/jogButtonStyle"/>
+        </TableRow>
+
+        <TableRow>
 
             <Button
                     android:id="@+id/xplus"
@@ -102,6 +136,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="X: 0"/>
+
     <TextView
             android:id="@+id/ypos"
             android:layout_toRightOf="@+id/jogButtons"
@@ -109,6 +144,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Y: 0"/>
+
     <TextView
             android:id="@+id/zpos"
             android:layout_toRightOf="@+id/jogButtons"

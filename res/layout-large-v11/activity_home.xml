@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:baselineAligned="false">
+
+    <LinearLayout android:orientation="vertical"
+                  android:layout_width="0dp"
+                  android:layout_height="match_parent"
+                  android:layout_weight="1">
+            <fragment android:name="com.recursivepenguin.botcubed.ui.printpanel.PrintPanelFragment_"
+                      android:id="@+id/fragment_print_panel"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <LinearLayout android:orientation="vertical"
+                  android:layout_width="0dp"
+                  android:layout_height="match_parent"
+                  android:layout_weight="1">
+            <fragment android:name="com.recursivepenguin.botcubed.ui.sdcard.SDCardContentsFragment_"
+                      android:id="@+id/fragment_sd_card"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent" />
+
+            <fragment android:name="com.recursivepenguin.botcubed.ui.gcode.GCodeFragment_"
+                      android:id="@+id/fragment_gcode"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -11,13 +11,13 @@ import com.googlecode.androidannotations.annotations.EService;
 import com.googlecode.androidannotations.annotations.SystemService;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.HexDump;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.recursivepenguin.botcubed.Printer;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,6 +42,10 @@ public class PrinterConnectionService extends Service {
     private Printer printer = new Printer();
 
     LocalBroadcastManager mManager;
+
+    LinkedBlockingQueue<String> commandQueue = new LinkedBlockingQueue<String>();
+
+    String lastCommand;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -105,14 +109,6 @@ public class PrinterConnectionService extends Service {
         }
     }
 
-    /*
-    Send a print command, that does not belong to a print job.
-     */
-    public void injectManualCommand(String command) {
-        Log.d(TAG, command);
-        addToCodeQueue(command);
-    }
-
     public Printer getPrinter() {
         return printer;
     }
@@ -127,7 +123,8 @@ public class PrinterConnectionService extends Service {
 
                 @Override
                 public void onNewData(final byte[] data) {
-                    String response = HexDump.dumpHexString(data);
+                    String response = new String(data);
+                    Log.d(TAG, response);
                     parseResponse(response);
                 }
             };
@@ -149,19 +146,31 @@ public class PrinterConnectionService extends Service {
         }
     }
 
+    /*
+    Send a print command, that does not belong to a print job.
+     */
     public void addToCodeQueue(String code) {
-        if (mSerialIoManager != null) {
-            mSerialIoManager.writeAsync((code + "\n").getBytes());
+        commandQueue.add(code);
+    }
+
+    private void sendNext() {
+        if (!commandQueue.isEmpty()) {
+            if (mSerialIoManager != null) {
+                lastCommand = commandQueue.poll();
+                mSerialIoManager.writeAsync((lastCommand + "\n").getBytes());
+            }
         }
     }
 
     Pattern tempPattern = Pattern.compile("T:(\\d+(\\.\\d+)?) B:(\\d+(\\.\\d+)?)");
-    Pattern positionPattern = Pattern.compile("C: X:(\\d+(\\.\\d+)?) Y:(\\d+(\\.\\d+)?) Z:(\\d+(\\.\\d+)?) E:(\\d+(\\.\\d+)?)");
+    Pattern positionPattern = Pattern.compile("X:(\\d+(\\.\\d+)?) Y:(\\d+(\\.\\d+)?) Z:(\\d+(\\.\\d+)?) E:(\\d+(\\.\\d+)?)");
 
     private void parseResponse(String response) {
         String type = response.substring(0, 2);
         if (type.equals("ok")) {
             //okay
+
+            sendNext();
 
             if (response.length() > 3) {
                 response = response.substring(3);

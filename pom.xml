@@ -21,6 +21,18 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>support-v4</artifactId>
+            <version>r7</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.actionbarsherlock</groupId>
+            <artifactId>actionbarsherlock</artifactId>
+            <version>4.2.0</version>
+            <type>apklib</type>
+        </dependency>
+        <dependency>
             <groupId>com.googlecode.androidannotations</groupId>
             <artifactId>androidannotations</artifactId>
             <version>2.7</version>
@@ -35,6 +47,12 @@
             <artifactId>crouton</artifactId>
             <version>1.6</version>
             <groupId>de.keyboardsurfer.android.widget</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>aFileChooser</artifactId>
+            <version>1.0</version>
+            <groupId>com.ipaulpro</groupId>
+            <type>apklib</type>
         </dependency>
     </dependencies>
 

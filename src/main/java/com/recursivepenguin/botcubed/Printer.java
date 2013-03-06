@@ -1,5 +1,7 @@
 package com.recursivepenguin.botcubed;
 
+import java.util.List;
+
 public class Printer {
 
     double extruderTemp;
@@ -8,6 +10,8 @@ public class Printer {
     double yPos;
     double zPos;
     double extruderPos;
+
+    List<String> sdCardFiles;
 
     public double getBedTemp() {
         return bedTemp;
@@ -55,5 +59,13 @@ public class Printer {
 
     public void setExtruderPos(double extruderPos) {
         this.extruderPos = extruderPos;
+    }
+
+    public void setSdCardFiles() {
+
+    }
+
+    public List<String> getSdCardFiles() {
+         return sdCardFiles;
     }
 }

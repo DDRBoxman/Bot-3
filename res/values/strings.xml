@@ -3,4 +3,7 @@
     <string name="hello">Hello BotCubed!</string>
     <string name="app_name">BotCubed</string>
     <string name="connect">Connect</string>
+    <string name="print_panel">Print Panel</string>
+    <string name="sd_card">SD Card</string>
+    <string name="gcode">GCode</string>
 </resources>

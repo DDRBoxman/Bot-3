@@ -16,6 +16,8 @@ import com.recursivepenguin.botcubed.Printer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -56,6 +58,8 @@ public class PrinterConnectionService extends Service {
 
     boolean printing = true;
     boolean waitingOnCommand = false;
+
+    Timer timer;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -147,6 +151,7 @@ public class PrinterConnectionService extends Service {
             Log.i(TAG, "Stopping io manager ..");
             mSerialIoManager.stop();
             mSerialIoManager = null;
+            timer.cancel();
         }
     }
 
@@ -156,6 +161,13 @@ public class PrinterConnectionService extends Service {
             mSerialIoManager = new SerialInputOutputManager(mSerialDevice, mListener);
             mExecutor.submit(mSerialIoManager);
             addToCodeQueue("M114");
+            timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    addToCodeQueue("M105");
+                }
+            }, 0, 1000);
         }
     }
 

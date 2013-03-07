@@ -39,12 +39,6 @@ public class GCodeFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
-        gcode = proxy.getGcode();
-        if (gcode != null) {
-            setupGcodeList();
-        }
-
         mManager = LocalBroadcastManager.getInstance(getActivity());
         mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_CHANGED_STEP));
     }
@@ -120,6 +114,7 @@ public class GCodeFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
+                gcode = new ArrayList<String>();
                 BufferedReader br = new BufferedReader(new FileReader(gcodeFile));
                 String strLine;
                 while ((strLine = br.readLine()) != null) {

@@ -153,4 +153,20 @@
             android:layout_height="wrap_content"
             android:text="Z: 0"/>
 
+    <TextView
+            android:id="@+id/bedTemp"
+            android:layout_toRightOf="@+id/jogButtons"
+            android:layout_below="@+id/zpos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bed: 0"/>
+
+    <TextView
+            android:id="@+id/extruderTemp"
+            android:layout_toRightOf="@+id/jogButtons"
+            android:layout_below="@+id/bedTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Extruder: 0"/>
+
 </RelativeLayout>

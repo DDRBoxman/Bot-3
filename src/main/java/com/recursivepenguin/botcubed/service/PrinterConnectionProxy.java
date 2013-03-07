@@ -2,6 +2,8 @@ package com.recursivepenguin.botcubed.service;
 
 import com.recursivepenguin.botcubed.Printer;
 
+import java.util.ArrayList;
+
 public interface PrinterConnectionProxy {
 
     /*
@@ -10,4 +12,8 @@ public interface PrinterConnectionProxy {
     public abstract void injectManualCommand(String command);
 
     public abstract Printer getPrinter();
+
+    public abstract void setGcode(ArrayList<String> gcode);
+
+    public abstract void startPrint();
 }

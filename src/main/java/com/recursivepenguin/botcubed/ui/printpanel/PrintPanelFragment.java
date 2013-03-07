@@ -31,6 +31,12 @@ public class PrintPanelFragment extends Fragment {
     @ViewById
     RadioGroup magnitude;
 
+    @ViewById
+    TextView bedTemp;
+
+    @ViewById
+    TextView extruderTemp;
+
     LocalBroadcastManager mManager;
 
     @Click
@@ -89,6 +95,7 @@ public class PrintPanelFragment extends Fragment {
 
         mManager = LocalBroadcastManager.getInstance(getActivity());
         mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_POSITION_CHANGED));
+        mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_TEMP_CHANGED));
     }
 
     @Override
@@ -141,11 +148,22 @@ public class PrintPanelFragment extends Fragment {
         }
     }
 
+    private void updateTempDisplay() {
+        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+        Printer printer = proxy.getPrinter();
+        if (printer != null) {
+            bedTemp.setText("Bed: " + printer.getBedTemp());
+            extruderTemp.setText("Extruder: " + printer.getExtruderTemp());
+        }
+    }
+
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PrinterConnectionService.ACTION_POSITION_CHANGED)) {
                 updatePosDisplay();
+            } else if (intent.getAction().equals(PrinterConnectionService.ACTION_TEMP_CHANGED)) {
+                updateTempDisplay();
             }
         }
     };

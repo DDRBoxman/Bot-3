@@ -10,4 +10,19 @@
             android:layout_width="wrap_content"
             android:text="Load GCode"/>
 
+    <Button
+            android:id="@+id/startPrint"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Start Print"
+            android:layout_toRightOf="@+id/loadGCode"/>
+
+    <ListView
+            android:id="@+id/gcodeList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/loadGCode"
+            android:layout_alignParentBottom="true"/>
+
+
 </RelativeLayout>

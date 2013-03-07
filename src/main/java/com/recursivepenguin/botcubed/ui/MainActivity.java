@@ -29,6 +29,8 @@ import com.recursivepenguin.botcubed.ui.sdcard.SDCardContentsFragment_;
 import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
+import java.util.ArrayList;
+
 @EActivity(R.layout.activity_home)
 @OptionsMenu(R.menu.main)
 public class MainActivity extends SherlockFragmentActivity implements PrinterConnectionProxy, ActionBar.TabListener,
@@ -150,6 +152,20 @@ public class MainActivity extends SherlockFragmentActivity implements PrinterCon
             return mBoundService.getPrinter();
         }
         return null;
+    }
+
+    @Override
+    public void setGcode(ArrayList<String> gcode) {
+        if (mBoundService != null) {
+            mBoundService.setGcode(gcode);
+        }
+    }
+
+    @Override
+    public void startPrint() {
+        if (mBoundService != null) {
+            mBoundService.startPrint();
+        }
     }
 
     @Override

@@ -15,6 +15,7 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.recursivepenguin.botcubed.Printer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -27,6 +28,8 @@ public class PrinterConnectionService extends Service {
     final String TAG = "PrinterConnectionService";
 
     public static final String ACTION_POSITION_CHANGED = "com.recursivepenguin.botcubed.service.ACTION_POSITION_CHANGED";
+    public static final String ACTION_TEMP_CHANGED = "com.recursivepenguin.botcubed.service.ACTION_TEMP_CHANGED";
+    public static final String ACTION_CHANGED_STEP = "com.recursivepenguin.botcubed.service.ACTION_CHANGED_STEP";
 
     @SystemService
     UsbManager usbManager;
@@ -46,6 +49,13 @@ public class PrinterConnectionService extends Service {
     LinkedBlockingQueue<String> commandQueue = new LinkedBlockingQueue<String>();
 
     String lastCommand;
+
+    ArrayList<String> gcode;
+
+    int gcodePos;
+
+    boolean printing = true;
+    boolean waitingOnCommand = false;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -124,8 +134,11 @@ public class PrinterConnectionService extends Service {
                 @Override
                 public void onNewData(final byte[] data) {
                     String response = new String(data);
-                    Log.d(TAG, response);
-                    parseResponse(response);
+                    String[] responses = response.split("\n");
+                    for (String code : responses) {
+                        Log.d(TAG, code);
+                        parseResponse(code);
+                    }
                 }
             };
 
@@ -151,13 +164,45 @@ public class PrinterConnectionService extends Service {
      */
     public void addToCodeQueue(String code) {
         commandQueue.add(code);
+        sendNext();
+    }
+
+    public void setGcode(ArrayList<String> newGcode) {
+        gcode = newGcode;
+    }
+
+    public void startPrint() {
+        if (!printing) {
+            printing = true;
+            gcodePos = 0;
+
+            sendNext();
+        }
     }
 
     private void sendNext() {
-        if (!commandQueue.isEmpty()) {
-            if (mSerialIoManager != null) {
-                lastCommand = commandQueue.poll();
-                mSerialIoManager.writeAsync((lastCommand + "\n").getBytes());
+        if (!waitingOnCommand) {
+            if (!commandQueue.isEmpty()) {
+                if (mSerialIoManager != null) {
+                    lastCommand = commandQueue.poll();
+                    waitingOnCommand = true;
+                    Log.d(TAG, lastCommand);
+                    mSerialIoManager.writeAsync((lastCommand + "\n").getBytes());
+                }
+            } else if (gcode != null && gcode.size() > gcodePos) {
+                String code = gcode.get(gcodePos) + "\n";
+                Log.d(TAG, code);
+                if (code.length() > 1 && code.charAt(0) != ';') {
+                    waitingOnCommand = true;
+                    mSerialIoManager.writeAsync(code.getBytes());
+
+                    Intent intent = new Intent();
+                    intent.setAction(ACTION_CHANGED_STEP);
+                    intent.putExtra("pos", gcodePos);
+                    mManager.sendBroadcast(intent);
+                }
+                gcodePos++;
+                sendNext();
             }
         }
     }
@@ -170,6 +215,7 @@ public class PrinterConnectionService extends Service {
         if (type.equals("ok")) {
             //okay
 
+            waitingOnCommand = false;
             sendNext();
 
             if (response.length() > 3) {
@@ -179,6 +225,9 @@ public class PrinterConnectionService extends Service {
                 if (m.find()) {
                     printer.setExtruderTemp(Double.parseDouble(m.group(1)));
                     printer.setBedTemp(Double.parseDouble(m.group(3)));
+                    Intent intent = new Intent();
+                    intent.setAction(ACTION_TEMP_CHANGED);
+                    mManager.sendBroadcast(intent);
                     return;
                 }
 

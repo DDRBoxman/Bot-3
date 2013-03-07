@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import com.googlecode.androidannotations.annotations.Click;
@@ -36,6 +37,12 @@ public class PrintPanelFragment extends Fragment {
 
     @ViewById
     TextView extruderTemp;
+
+    @ViewById
+    EditText extruderHeat;
+
+    @ViewById
+    EditText bedHeat;
 
     LocalBroadcastManager mManager;
 
@@ -87,6 +94,24 @@ public class PrintPanelFragment extends Fragment {
     @Click
     void zminus() {
         moveHead("Z", -1);
+    }
+
+    @Click
+    void extruderHeatOn() {
+        if (extruderHeat.getText().length() > 0) {
+            int temp = Integer.parseInt(extruderHeat.getText().toString());
+            PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+            proxy.injectManualCommand(String.format("M104 S%s", temp));
+        }
+    }
+
+    @Click
+    void bedHeatOn() {
+        if (bedHeat.getText().length() > 0) {
+            int temp = Integer.parseInt(bedHeat.getText().toString());
+            PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+            proxy.injectManualCommand(String.format("M140 S%s", temp));
+        }
     }
 
     @Override

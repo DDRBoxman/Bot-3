@@ -11,6 +11,7 @@
             android:layout_width="wrap_content">
 
         <TableRow>
+
             <Button
                     android:id="@+id/homeall"
                     android:layout_height="wrap_content"
@@ -168,5 +169,49 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Extruder: 0"/>
+
+    <TextView
+            android:id="@+id/extruderLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_below="@+id/magnitude"
+            android:text="Extruder"/>
+
+    <Button
+            android:id="@+id/extruderHeatOn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/extruderLabel"
+            android:text="Heat On"/>
+
+    <EditText
+            android:id="@+id/extruderHeat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/extruderLabel"
+            android:layout_toRightOf="@+id/extruderHeatOn"
+            android:inputType="number"/>
+
+    <TextView
+            android:id="@+id/bedLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_below="@+id/extruderHeatOn"
+            android:text="Bed"/>
+
+    <Button
+            android:id="@+id/bedHeatOn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/bedLabel"
+            android:text="Heat On"/>
+
+    <EditText
+            android:id="@+id/bedHeat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/bedLabel"
+            android:layout_toRightOf="@+id/bedHeatOn"
+            android:inputType="number"/>
 
 </RelativeLayout>

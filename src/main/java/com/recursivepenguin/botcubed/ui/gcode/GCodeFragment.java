@@ -41,7 +41,9 @@ public class GCodeFragment extends Fragment {
 
         PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
         gcode = proxy.getGcode();
-        setupGcodeList();
+        if (gcode != null) {
+            setupGcodeList();
+        }
 
         mManager = LocalBroadcastManager.getInstance(getActivity());
         mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_CHANGED_STEP));
@@ -71,7 +73,7 @@ public class GCodeFragment extends Fragment {
     }
 
     @Click
-    void  startPrint() {
+    void startPrint() {
         PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
         proxy.startPrint();
     }
@@ -148,7 +150,7 @@ public class GCodeFragment extends Fragment {
     }
 
     private void updateStepPos(int step) {
-         gcodeList.setSelection(step);
+        gcodeList.setSelection(step);
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {

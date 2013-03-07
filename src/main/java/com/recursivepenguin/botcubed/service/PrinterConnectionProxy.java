@@ -15,6 +15,8 @@ public interface PrinterConnectionProxy {
 
     public abstract void setGcode(ArrayList<String> gcode);
 
+    public abstract ArrayList<String> getGcode();
+
     public abstract void startPrint();
 
     public abstract void pausePrint();

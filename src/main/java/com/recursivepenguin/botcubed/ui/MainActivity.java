@@ -162,6 +162,14 @@ public class MainActivity extends SherlockFragmentActivity implements PrinterCon
     }
 
     @Override
+    public ArrayList<String> getGcode() {
+        if (mBoundService != null) {
+            return mBoundService.getGcode();
+        }
+        return null;
+    }
+
+    @Override
     public void startPrint() {
         if (mBoundService != null) {
             mBoundService.startPrint();

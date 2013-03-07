@@ -173,6 +173,10 @@ public class PrinterConnectionService extends Service {
         gcodePos = 0;
     }
 
+    public ArrayList<String> getGcode() {
+        return gcode;
+    }
+
     public void startPrint() {
         if (!printing) {
             printing = true;

@@ -39,6 +39,10 @@ public class GCodeFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+        gcode = proxy.getGcode();
+        setupGcodeList();
+
         mManager = LocalBroadcastManager.getInstance(getActivity());
         mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_CHANGED_STEP));
     }
@@ -131,12 +135,16 @@ public class GCodeFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, gcode);
-            gcodeList.setAdapter(adapter);
+            setupGcodeList();
             PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
             proxy.setGcode(gcode);
             dialog.dismiss();
         }
+    }
+
+    private void setupGcodeList() {
+        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, gcode);
+        gcodeList.setAdapter(adapter);
     }
 
     private void updateStepPos(int step) {

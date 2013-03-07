@@ -40,3 +40,8 @@ To build and install BotCubed
 
     mvn install
     mvn android:deploy
+    
+ScreenShots
+-----------
+![](http://ddrboxman.github.com/Bot-3/Screenshot_2013-03-06-22-02-04.png)
+![](http://ddrboxman.github.com/Bot-3/Screenshot_2013-03-07-03-54-16.png)

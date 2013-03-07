@@ -17,6 +17,13 @@
             android:text="Start Print"
             android:layout_toRightOf="@+id/loadGCode"/>
 
+    <Button
+            android:id="@+id/pausePrint"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Pause Print"
+            android:layout_toRightOf="@+id/startPrint"/>
+
     <ListView
             android:id="@+id/gcodeList"
             android:layout_width="match_parent"

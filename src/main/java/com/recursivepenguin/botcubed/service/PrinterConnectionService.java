@@ -168,15 +168,22 @@ public class PrinterConnectionService extends Service {
     }
 
     public void setGcode(ArrayList<String> newGcode) {
+        printing = false;
         gcode = newGcode;
+        gcodePos = 0;
     }
 
     public void startPrint() {
         if (!printing) {
             printing = true;
-            gcodePos = 0;
 
             sendNext();
+        }
+    }
+
+    public void pausePrint() {
+        if (printing) {
+            printing = false;
         }
     }
 
@@ -189,7 +196,7 @@ public class PrinterConnectionService extends Service {
                     Log.d(TAG, lastCommand);
                     mSerialIoManager.writeAsync((lastCommand + "\n").getBytes());
                 }
-            } else if (gcode != null && gcode.size() > gcodePos) {
+            } else if (printing && gcode != null && gcode.size() > gcodePos) {
                 String code = gcode.get(gcodePos) + "\n";
                 Log.d(TAG, code);
                 if (code.length() > 1 && code.charAt(0) != ';') {
@@ -217,39 +224,34 @@ public class PrinterConnectionService extends Service {
 
             waitingOnCommand = false;
             sendNext();
-
-            if (response.length() > 3) {
-                response = response.substring(3);
-
-                Matcher m = tempPattern.matcher(response);
-                if (m.find()) {
-                    printer.setExtruderTemp(Double.parseDouble(m.group(1)));
-                    printer.setBedTemp(Double.parseDouble(m.group(3)));
-                    Intent intent = new Intent();
-                    intent.setAction(ACTION_TEMP_CHANGED);
-                    mManager.sendBroadcast(intent);
-                    return;
-                }
-
-                m = positionPattern.matcher(response);
-                if (m.find()) {
-                    printer.setxPos(Double.parseDouble(m.group(1)));
-                    printer.setyPos(Double.parseDouble(m.group(3)));
-                    printer.setzPos(Double.parseDouble(m.group(5)));
-                    printer.setzPos(Double.parseDouble(m.group(7)));
-
-                    Intent intent = new Intent();
-                    intent.setAction(ACTION_POSITION_CHANGED);
-                    mManager.sendBroadcast(intent);
-                    return;
-                }
-            }
-
         } else if (type.equals("rs")) {
             //resend
 
         } else if (type.equals("!!")) {
             //Oh shit hardware dead!
+        } else {
+            Matcher m = tempPattern.matcher(response);
+            if (m.find()) {
+                printer.setExtruderTemp(Double.parseDouble(m.group(1)));
+                printer.setBedTemp(Double.parseDouble(m.group(3)));
+                Intent intent = new Intent();
+                intent.setAction(ACTION_TEMP_CHANGED);
+                mManager.sendBroadcast(intent);
+                return;
+            }
+
+            m = positionPattern.matcher(response);
+            if (m.find()) {
+                printer.setxPos(Double.parseDouble(m.group(1)));
+                printer.setyPos(Double.parseDouble(m.group(3)));
+                printer.setzPos(Double.parseDouble(m.group(5)));
+                printer.setzPos(Double.parseDouble(m.group(7)));
+
+                Intent intent = new Intent();
+                intent.setAction(ACTION_POSITION_CHANGED);
+                mManager.sendBroadcast(intent);
+                return;
+            }
         }
     }
 }

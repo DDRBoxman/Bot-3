@@ -169,6 +169,13 @@ public class MainActivity extends SherlockFragmentActivity implements PrinterCon
     }
 
     @Override
+    public void pausePrint() {
+        if (mBoundService != null) {
+            mBoundService.pausePrint();
+        }
+    }
+
+    @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
         mViewPager.setCurrentItem(tab.getPosition());
     }

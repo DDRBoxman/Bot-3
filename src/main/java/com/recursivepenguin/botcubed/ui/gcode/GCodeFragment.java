@@ -72,6 +72,12 @@ public class GCodeFragment extends Fragment {
         proxy.startPrint();
     }
 
+    @Click
+    void pausePrint() {
+        PrinterConnectionProxy proxy = (PrinterConnectionProxy) getActivity();
+        proxy.pausePrint();
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {

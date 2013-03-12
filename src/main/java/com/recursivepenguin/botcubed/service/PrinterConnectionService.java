@@ -78,6 +78,8 @@ public class PrinterConnectionService extends Service {
 
     PendingIntent mPermissionIntent;
 
+    int commandLineNumber = 1;
+
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -187,6 +189,7 @@ public class PrinterConnectionService extends Service {
 
             mSerialIoManager = new SerialInputOutputManager(mSerialDevice, mListener);
             mExecutor.submit(mSerialIoManager);
+            commandLineNumber = 1;
             addToCodeQueue("M114");
         }
     }
@@ -229,15 +232,13 @@ public class PrinterConnectionService extends Service {
                 if (mSerialIoManager != null) {
                     lastCommand = commandQueue.poll();
                     waitingOnCommand = true;
-                    Log.d(TAG, lastCommand);
-                    mSerialIoManager.writeAsync((lastCommand + "\n").getBytes());
+                    sendCommand(lastCommand);
                 }
             } else if (printing && gcode != null && gcode.size() > gcodePos) {
-                String code = gcode.get(gcodePos) + "\n";
-                Log.d(TAG, code);
+                String code = gcode.get(gcodePos);
                 if (code.length() > 1 && code.charAt(0) != ';') {
                     waitingOnCommand = true;
-                    mSerialIoManager.writeAsync(code.getBytes());
+                    sendCommand(code);
 
                     Intent intent = new Intent();
                     intent.setAction(ACTION_CHANGED_STEP);
@@ -248,6 +249,28 @@ public class PrinterConnectionService extends Service {
                 sendNext();
             }
         }
+    }
+
+    private void sendCommand(String command) {
+
+        int comment = command.indexOf(';');
+        if (comment > -1) {
+            command = command.substring(0, comment);
+            command = command.trim();
+        }
+
+        command = String.format("N%d %s ", commandLineNumber, command);
+        int cs = 0;
+        byte[] bytes = command.getBytes();
+        for(int i=0; i<bytes.length; i++) {
+            cs = cs ^ bytes[i];
+        }
+        cs &= 0xff;  // Defensive programming...
+        command = String.format("%s*%d\n", command, cs);
+
+        Log.d(TAG, command);
+        mSerialIoManager.writeAsync(command.getBytes());
+        commandLineNumber++;
     }
 
     Pattern tempPattern = Pattern.compile("T:(\\d+(\\.\\d+)?) B:(\\d+(\\.\\d+)?)");
@@ -341,6 +364,7 @@ public class PrinterConnectionService extends Service {
                 connected = false;
                 notifyConnectionFailed();
                 stopIoManager();
+                commandQueue.clear();
             }
         }
     };

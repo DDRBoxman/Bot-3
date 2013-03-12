@@ -36,8 +36,7 @@ public class PrinterConnectionService extends Service {
 
     final String TAG = "PrinterConnectionService";
 
-    public static final String ACTION_POSITION_CHANGED = "com.recursivepenguin.botcubed.service.ACTION_POSITION_CHANGED";
-    public static final String ACTION_TEMP_CHANGED = "com.recursivepenguin.botcubed.service.ACTION_TEMP_CHANGED";
+    public static final String ACTION_PRINTER_VALUES_CHANGED = "com.recursivepenguin.botcubed.service.ACTION_PRINTER_VALUES_CHANGED";
     public static final String ACTION_CHANGED_STEP = "com.recursivepenguin.botcubed.service.ACTION_CHANGED_STEP";
 
     private static final String ACTION_USB_PERMISSION = "com.recursivepenguin.botcubed.USB_PERMISSION";
@@ -262,7 +261,7 @@ public class PrinterConnectionService extends Service {
         command = String.format("N%d %s ", commandLineNumber, command);
         int cs = 0;
         byte[] bytes = command.getBytes();
-        for(int i=0; i<bytes.length; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             cs = cs ^ bytes[i];
         }
         cs &= 0xff;  // Defensive programming...
@@ -273,8 +272,7 @@ public class PrinterConnectionService extends Service {
         commandLineNumber++;
     }
 
-    Pattern tempPattern = Pattern.compile("T:(\\d+(\\.\\d+)?) B:(\\d+(\\.\\d+)?)");
-    Pattern positionPattern = Pattern.compile("X:(\\d+(\\.\\d+)?) Y:(\\d+(\\.\\d+)?) Z:(\\d+(\\.\\d+)?) E:(\\d+(\\.\\d+)?)");
+    Pattern dataPattern = Pattern.compile("([A-Z]):(\\d+(\\.\\d+)?)");
 
     private void parseResponse(String response) {
         String type = response.substring(0, 2);
@@ -289,27 +287,39 @@ public class PrinterConnectionService extends Service {
         } else if (type.equals("!!")) {
             //Oh shit hardware dead!
         } else {
-            Matcher m = tempPattern.matcher(response);
-            if (m.find()) {
-                printer.setExtruderTemp(Double.parseDouble(m.group(1)));
-                printer.setBedTemp(Double.parseDouble(m.group(3)));
-                Intent intent = new Intent();
-                intent.setAction(ACTION_TEMP_CHANGED);
-                mManager.sendBroadcast(intent);
-                return;
+
+            String id;
+            double value;
+            boolean updated = false;
+
+            Matcher m = dataPattern.matcher(response);
+            while (m.find()) {
+
+                id = m.group(1);
+                value = Double.parseDouble(m.group(2));
+
+                if (id.equals("X")) {
+                    printer.setxPos(value);
+                    updated = true;
+                } else if (id.equals("Y")) {
+                    printer.setyPos(value);
+                    updated = true;
+                } else if (id.equals("Z")) {
+                    printer.setzPos(value);
+                    updated = true;
+                } else if (id.equals("B")) {
+                    printer.setBedTemp(value);
+                    updated = true;
+                } else if (id.equals("T")) {
+                    printer.setExtruderTemp(value);
+                    updated = true;
+                }
             }
 
-            m = positionPattern.matcher(response);
-            if (m.find()) {
-                printer.setxPos(Double.parseDouble(m.group(1)));
-                printer.setyPos(Double.parseDouble(m.group(3)));
-                printer.setzPos(Double.parseDouble(m.group(5)));
-                printer.setzPos(Double.parseDouble(m.group(7)));
-
+            if (updated) {
                 Intent intent = new Intent();
-                intent.setAction(ACTION_POSITION_CHANGED);
+                intent.setAction(ACTION_PRINTER_VALUES_CHANGED);
                 mManager.sendBroadcast(intent);
-                return;
             }
         }
     }

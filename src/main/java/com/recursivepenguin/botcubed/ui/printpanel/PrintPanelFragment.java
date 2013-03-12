@@ -119,8 +119,7 @@ public class PrintPanelFragment extends Fragment {
         super.onResume();
 
         mManager = LocalBroadcastManager.getInstance(getActivity());
-        mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_POSITION_CHANGED));
-        mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_TEMP_CHANGED));
+        mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_PRINTER_VALUES_CHANGED));
     }
 
     @Override
@@ -185,9 +184,8 @@ public class PrintPanelFragment extends Fragment {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(PrinterConnectionService.ACTION_POSITION_CHANGED)) {
+            if (intent.getAction().equals(PrinterConnectionService.ACTION_PRINTER_VALUES_CHANGED)) {
                 updatePosDisplay();
-            } else if (intent.getAction().equals(PrinterConnectionService.ACTION_TEMP_CHANGED)) {
                 updateTempDisplay();
             }
         }

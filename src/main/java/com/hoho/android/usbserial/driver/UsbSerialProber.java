@@ -20,11 +20,11 @@
 
 package com.hoho.android.usbserial.driver;
 
-import java.util.Map;
-
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+
+import java.util.Map;
 
 /**
  * Helper class to assist in detecting and building {@link com.hoho.android.usbserial.driver.UsbSerialDriver}
@@ -109,6 +109,18 @@ public enum UsbSerialProber {
             final UsbSerialDriver probedDevice = acquire(usbManager, usbDevice);
             if (probedDevice != null) {
                 return probedDevice;
+            }
+        }
+        return null;
+    }
+
+    public static UsbDevice findFirstSupported(final UsbManager usbManager) {
+
+        for (final UsbDevice usbDevice : usbManager.getDeviceList().values()) {
+            if (testIfSupported(usbDevice, FtdiSerialDriver.getSupportedDevices()) ||
+            testIfSupported(usbDevice, CdcAcmSerialDriver.getSupportedDevices()) ||
+            testIfSupported(usbDevice, Cp2102SerialDriver.getSupportedDevices())) {
+                return usbDevice;
             }
         }
         return null;

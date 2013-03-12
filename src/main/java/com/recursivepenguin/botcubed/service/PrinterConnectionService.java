@@ -1,10 +1,18 @@
 package com.recursivepenguin.botcubed.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.googlecode.androidannotations.annotations.EService;
@@ -13,11 +21,10 @@ import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.recursivepenguin.botcubed.Printer;
+import com.recursivepenguin.botcubed.R;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,8 +40,18 @@ public class PrinterConnectionService extends Service {
     public static final String ACTION_TEMP_CHANGED = "com.recursivepenguin.botcubed.service.ACTION_TEMP_CHANGED";
     public static final String ACTION_CHANGED_STEP = "com.recursivepenguin.botcubed.service.ACTION_CHANGED_STEP";
 
+    private static final String ACTION_USB_PERMISSION = "com.recursivepenguin.botcubed.USB_PERMISSION";
+    public static final String ACTION_CONNECTION_FAILED = "com.recursivepenguin.botcubed.CONNECTION_FAILED";
+    public static final String ACTION_CONNECTION_SUCCESS = "com.recursivepenguin.botcubed.CONNECTION_SUCCESS";
+
+    private final int ONGOING_NOTIFICATION_ID = 3424;
+    Notification mOngoingNotification;
+
     @SystemService
     UsbManager usbManager;
+
+    @SystemService
+    NotificationManager notificationManager;
 
     UsbSerialDriver mSerialDevice;
 
@@ -59,7 +76,7 @@ public class PrinterConnectionService extends Service {
     boolean printing = true;
     boolean waitingOnCommand = false;
 
-    Timer timer;
+    PendingIntent mPermissionIntent;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -87,26 +104,28 @@ public class PrinterConnectionService extends Service {
         super.onCreate();
 
         mManager = LocalBroadcastManager.getInstance(this);
+
+        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+
+        IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+        registerReceiver(mUsbReceiver, filter);
+
+        IntentFilter deviceDetachFilter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        registerReceiver(mUsbReceiver, deviceDetachFilter);
+
+        mOngoingNotification = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.icon).setContentTitle("Connected To Printer").setOngoing(true).getNotification();
     }
 
     public boolean isConnected() {
         return connected;
     }
 
-    public void connectToPrinter() throws PrinterError {
+    public void requestConnectToPrinter() throws PrinterError {
         // Find the first available driver.
-        mSerialDevice = UsbSerialProber.acquire(usbManager);
+        UsbDevice device = UsbSerialProber.findFirstSupported(usbManager);
 
-        if (mSerialDevice != null) {
-            try {
-                mSerialDevice.open();
-
-                connected = true;
-
-                startIoManager();
-            } catch (IOException e) {
-                throw new PrinterError("Failed to open printer connection.");
-            }
+        if (device != null) {
+            usbManager.requestPermission(device, mPermissionIntent);
         } else {
             throw new PrinterError("No Printer Found");
         }
@@ -115,6 +134,8 @@ public class PrinterConnectionService extends Service {
     public void disconnectFromPrinter() {
 
         stopIoManager();
+
+        connected = false;
 
         try {
             mSerialDevice.close();
@@ -148,26 +169,25 @@ public class PrinterConnectionService extends Service {
 
     private void stopIoManager() {
         if (mSerialIoManager != null) {
+
+            notificationManager.cancel(ONGOING_NOTIFICATION_ID);
+
             Log.i(TAG, "Stopping io manager ..");
             mSerialIoManager.stop();
             mSerialIoManager = null;
-            timer.cancel();
         }
     }
 
     private void startIoManager() {
         if (mSerialDevice != null) {
             Log.i(TAG, "Starting io manager ..");
+
+
+            notificationManager.notify(ONGOING_NOTIFICATION_ID, mOngoingNotification);
+
             mSerialIoManager = new SerialInputOutputManager(mSerialDevice, mListener);
             mExecutor.submit(mSerialIoManager);
             addToCodeQueue("M114");
-            timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    addToCodeQueue("M105");
-                }
-            }, 0, 1000);
         }
     }
 
@@ -270,4 +290,58 @@ public class PrinterConnectionService extends Service {
             }
         }
     }
+
+    private void notifyConnectionSuccess() {
+        Intent intent = new Intent();
+        intent.setAction(ACTION_CONNECTION_SUCCESS);
+        mManager.sendBroadcast(intent);
+    }
+
+    private void notifyConnectionFailed() {
+        Intent intent = new Intent();
+        intent.setAction(ACTION_CONNECTION_FAILED);
+        mManager.sendBroadcast(intent);
+    }
+
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                synchronized (this) {
+                    UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        if (device != null) {
+
+                            mSerialDevice = UsbSerialProber.acquire(usbManager, device);
+
+                            if (mSerialDevice != null) {
+                                try {
+                                    mSerialDevice.open();
+
+                                    connected = true;
+
+                                    startIoManager();
+
+                                    notifyConnectionSuccess();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                notifyConnectionFailed();
+                            }
+                        } else {
+                            notifyConnectionFailed();
+                            Log.d(TAG, "permission denied for device " + device);
+                        }
+                    }
+                }
+            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                connected = false;
+                notifyConnectionFailed();
+                stopIoManager();
+            }
+        }
+    };
 }

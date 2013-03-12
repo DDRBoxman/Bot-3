@@ -1,15 +1,13 @@
 package com.recursivepenguin.botcubed.ui;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.*;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
@@ -20,6 +18,7 @@ import com.recursivepenguin.botcubed.service.PrinterConnectionProxy;
 import com.recursivepenguin.botcubed.service.PrinterConnectionService;
 import com.recursivepenguin.botcubed.service.PrinterConnectionService_;
 import com.recursivepenguin.botcubed.service.PrinterError;
+import com.recursivepenguin.botcubed.ui.debug.USBDebugActivity_;
 import com.recursivepenguin.botcubed.ui.gcode.GCodeFragment;
 import com.recursivepenguin.botcubed.ui.gcode.GCodeFragment_;
 import com.recursivepenguin.botcubed.ui.printpanel.PrintPanelFragment;
@@ -43,6 +42,8 @@ public class MainActivity extends SherlockFragmentActivity implements PrinterCon
     @ViewById(R.id.pager)
     ViewPager mViewPager;
 
+    LocalBroadcastManager mManager;
+
     PrintPanelFragment mPrintPanelFragment;
     SDCardContentsFragment mSDCardContentsFragment;
     GCodeFragment mGCodeFragment;
@@ -52,6 +53,22 @@ public class MainActivity extends SherlockFragmentActivity implements PrinterCon
         super.onCreate(savedInstanceState);
 
         doBindService();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        mManager = LocalBroadcastManager.getInstance(this);
+        mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_CONNECTION_FAILED));
+        mManager.registerReceiver(mMessageReceiver, new IntentFilter(PrinterConnectionService.ACTION_CONNECTION_SUCCESS));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        mManager.unregisterReceiver(mMessageReceiver);
     }
 
     @AfterViews
@@ -88,12 +105,16 @@ public class MainActivity extends SherlockFragmentActivity implements PrinterCon
             mBoundService.disconnectFromPrinter();
         } else {
             try {
-                mBoundService.connectToPrinter();
-                Crouton.makeText(this, "Connected to Printer", Style.CONFIRM).show();
+                mBoundService.requestConnectToPrinter();
             } catch (PrinterError printerError) {
                 Crouton.makeText(this, printerError.getMessage(), Style.ALERT).show();
             }
         }
+    }
+
+    @OptionsItem
+    void usbdebug() {
+        USBDebugActivity_.intent(this).start();
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -234,5 +255,17 @@ public class MainActivity extends SherlockFragmentActivity implements PrinterCon
             return 3;
         }
     }
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(PrinterConnectionService.ACTION_CONNECTION_FAILED)) {
+                Crouton.makeText(MainActivity.this, "Connection Failed", Style.ALERT).show();
+            }
+            else if (intent.getAction().equals(PrinterConnectionService.ACTION_CONNECTION_SUCCESS)) {
+                Crouton.makeText(MainActivity.this, "Connected to printer", Style.CONFIRM).show();
+            }
+        }
+    };
 }
 

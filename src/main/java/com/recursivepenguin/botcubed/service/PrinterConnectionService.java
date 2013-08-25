@@ -12,6 +12,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -51,6 +52,11 @@ public class PrinterConnectionService extends Service {
 
     @SystemService
     NotificationManager notificationManager;
+
+    @SystemService
+    PowerManager powerManager;
+
+    PowerManager.WakeLock mWakeLock;
 
     UsbSerialDriver mSerialDevice;
 
@@ -171,7 +177,8 @@ public class PrinterConnectionService extends Service {
     private void stopIoManager() {
         if (mSerialIoManager != null) {
 
-            notificationManager.cancel(ONGOING_NOTIFICATION_ID);
+            stopForeground(true);
+            mWakeLock.release();
 
             Log.i(TAG, "Stopping io manager ..");
             mSerialIoManager.stop();
@@ -183,8 +190,14 @@ public class PrinterConnectionService extends Service {
         if (mSerialDevice != null) {
             Log.i(TAG, "Starting io manager ..");
 
+            startForeground(ONGOING_NOTIFICATION_ID, mOngoingNotification);
 
-            notificationManager.notify(ONGOING_NOTIFICATION_ID, mOngoingNotification);
+            mWakeLock = powerManager.newWakeLock(
+                    PowerManager.SCREEN_DIM_WAKE_LOCK
+                            | PowerManager.ON_AFTER_RELEASE,
+                    TAG);
+            mWakeLock.acquire();
+
 
             mSerialIoManager = new SerialInputOutputManager(mSerialDevice, mListener);
             mExecutor.submit(mSerialIoManager);
